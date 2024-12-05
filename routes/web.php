@@ -10,7 +10,7 @@ Route::get('/', function () {
         return redirect()->route('home');
     }
     return view('auth.login');
-})->name('login');
+})->name('root');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', function () {
