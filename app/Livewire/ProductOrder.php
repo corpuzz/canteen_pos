@@ -18,11 +18,17 @@ class ProductOrder extends Component
     public $cart = [];
     public $categories = [];
     public $quantities = [];
+    public $selectedCartItems = [];
+    public $selectAll = false;
 
     public function mount()
     {
-        $this->categories = array_merge(['All'], Product::distinct('category')->pluck('category')->toArray());
         $this->cart = session()->get('cart', []);
+        // Select all existing cart items by default
+        $this->selectedCartItems = collect($this->cart)
+            ->mapWithKeys(fn($item, $productId) => [$productId => true])
+            ->toArray();
+        $this->categories = array_merge(['All'], Product::distinct('category')->pluck('category')->toArray());
         $this->initializeQuantities();
     }
 
@@ -74,20 +80,19 @@ class ProductOrder extends Component
         $product = Product::find($productId);
         if (!$product) return;
 
-        $quantity = $this->quantities[$productId] ?? 1;
-
         if (isset($this->cart[$productId])) {
-            $this->cart[$productId]['quantity'] += $quantity;
+            $this->cart[$productId]['quantity']++;
         } else {
             $this->cart[$productId] = [
                 'name' => $product->name,
                 'price' => $product->price,
-                'quantity' => $quantity
+                'quantity' => 1
             ];
+            // Auto-select newly added items
+            $this->selectedCartItems[$productId] = true;
         }
 
         session()->put('cart', $this->cart);
-        $this->quantities[$productId] = 1; // Reset quantity after adding to cart
         $this->dispatch('cart-updated');
     }
 
@@ -105,13 +110,68 @@ class ProductOrder extends Component
         $newQuantity = $this->cart[$productId]['quantity'] + $change;
         
         if ($newQuantity <= 0) {
-            $this->removeFromCart($productId);
-            return;
+            unset($this->cart[$productId]);
+        } else {
+            $this->cart[$productId]['quantity'] = $newQuantity;
         }
 
-        $this->cart[$productId]['quantity'] = $newQuantity;
         session()->put('cart', $this->cart);
         $this->dispatch('cart-updated');
+    }
+
+    public function processOrder()
+    {
+        if (empty($this->selectedCartItems)) return;
+
+        // Remove processed items from cart
+        foreach ($this->selectedCartItems as $productId => $selected) {
+            unset($this->cart[$productId]);
+        }
+
+        // Clear selected items
+        $this->selectedCartItems = [];
+        
+        // Update session
+        session()->put('cart', $this->cart);
+        $this->dispatch('cart-updated');
+        
+        session()->flash('message', 'Selected orders processed successfully!');
+    }
+
+    public function toggleSelectAll()
+    {
+        if (count($this->selectedCartItems) === count($this->cart)) {
+            $this->selectedCartItems = [];
+        } else {
+            $this->selectedCartItems = collect($this->cart)
+                ->mapWithKeys(fn($item, $productId) => [$productId => true])
+                ->toArray();
+        }
+    }
+
+    public function removeSelectedItems()
+    {
+        // Only remove the items that are currently selected
+        foreach ($this->selectedCartItems as $productId => $selected) {
+            if ($selected) {
+                unset($this->cart[$productId]);
+            }
+        }
+        
+        // Clear the selected items
+        $this->selectedCartItems = [];
+        $this->selectAll = false;
+        
+        // Update the session
+        session()->put('cart', $this->cart);
+        $this->dispatch('cart-updated');
+    }
+
+    public function getSelectedItemsCountProperty()
+    {
+        return collect($this->selectedCartItems)
+            ->filter(fn($selected) => $selected === true)
+            ->count();
     }
 
     public function getCartTotalProperty()
@@ -119,6 +179,19 @@ class ProductOrder extends Component
         return collect($this->cart)->sum(function($item) {
             return $item['price'] * $item['quantity'];
         });
+    }
+
+    #[Computed]
+    public function getSelectedTotalProperty()
+    {
+        return collect($this->cart)
+            ->filter(fn($item, $productId) => !empty($this->selectedCartItems[$productId]))
+            ->sum(fn($item) => $item['price'] * $item['quantity']);
+    }
+
+    public function hasSelectedItems()
+    {
+        return !empty($this->selectedCartItems);
     }
 
     public function getFormattedImageUrl($url)
@@ -142,6 +215,23 @@ class ProductOrder extends Component
         $publicPath = asset('images/' . $url);
 
         return $storagePath;
+    }
+
+    public function updatedSelectAll($value)
+    {
+        if ($value) {
+            $this->selectedCartItems = collect($this->cart)
+                ->mapWithKeys(fn($item, $productId) => [$productId => true])
+                ->toArray();
+        } else {
+            $this->selectedCartItems = [];
+        }
+    }
+
+    public function updatedSelectedCartItems()
+    {
+        // Update select all checkbox state
+        $this->selectAll = count($this->selectedCartItems) === count($this->cart);
     }
 
     public function render()
