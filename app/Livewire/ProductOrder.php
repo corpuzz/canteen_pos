@@ -13,7 +13,7 @@ class ProductOrder extends Component
     use WithFileUploads;
 
     public $search = '';
-    public $selectedCategory = '';
+    public $selectedCategory = 'All';
     public $orderType = 'dine-in';
     public $cart = [];
     public $categories = [];
@@ -28,7 +28,14 @@ class ProductOrder extends Component
         $this->selectedCartItems = collect($this->cart)
             ->mapWithKeys(fn($item, $productId) => [$productId => true])
             ->toArray();
-        $this->categories = array_merge(['All'], Product::distinct('category')->pluck('category')->toArray());
+        $this->quantities = array_fill_keys(array_keys($this->cart), 1);
+        
+        // Fetch categories
+        $this->categories = Product::select('category')
+            ->distinct()
+            ->pluck('category')
+            ->prepend('All')
+            ->toArray();
         $this->initializeQuantities();
     }
 

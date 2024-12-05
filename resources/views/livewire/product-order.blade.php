@@ -8,16 +8,16 @@
         <div class="h-full flex flex-col">
             <!-- Logo -->
             <div class="p-4">
-                <h1 class="text-2xl font-bold text-coral-600 dark:text-coral-400">Canteen POS</h1>
+                <h1 class="text-2xl font-bold text-orange-600 dark:text-orange-400">Canteen POS</h1>
             </div>
 
             <!-- Navigation -->
             <nav class="flex-1 p-4 bg-gray-100 dark:bg-gray-900 ">
                 <div class=" space-y-2">
-                    <a href="#" class="block px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-coral-100 dark:hover:bg-coral-900">
+                    <a href="#" class="block px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-orange-400 dark:hover:bg-orange-900">
                         Menu
                     </a>
-                    <a href="{{ route('dashboard') }}" class="block px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-coral-100 dark:hover:bg-coral-900">
+                    <a href="{{ route('dashboard') }}" class="block px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-orange-400 dark:hover:bg-orange-900">
                         Transactions
                     </a>
                 </div>
@@ -27,7 +27,7 @@
             <div class="p-4 border-t border-gray-200 dark:border-gray-700">
                 <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0">
-                        <div class="w-10 h-10 rounded-full bg-coral-500 flex items-center justify-center text-white">
+                        <div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white">
                             {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
                         </div>
                     </div>
@@ -52,28 +52,35 @@
                             wire:model.live="search" 
                             type="text" 
                             placeholder="Search products..." 
-                            class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-coral-500 focus:border-coral-500"
+                            class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-orange-500 focus:border-orange-500"
                         >
                     </div>
 
                     <!-- Categories -->
-                    <div class="mt-4 flex flex-wrap gap-2">
-                        <button 
-                            wire:click="selectCategory('All')"
-                            class="px-4 py-2 rounded-lg {{ $selectedCategory === 'All' ? 'bg-coral-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300' }} hover:bg-coral-400 dark:hover:bg-coral-600 transition-colors"
+                    <div class="mt-4 flex flex-wrap gap-2 mb-4">
+                    <button 
+                            wire:click="$set('selectedCategory', 'All')"
+                            class="px-4 py-2 rounded-lg transition-colors duration-300 
+                                {{ $selectedCategory === 'All' 
+                                    ? 'bg-orange-500 text-white' 
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}"
                         >
                             All
                         </button>
                         @foreach($categories as $category)
                             @if($category !== 'All')
                                 <button 
-                                    wire:click="selectCategory('{{ $category }}')"
-                                    class="px-4 py-2 rounded-lg {{ $selectedCategory === $category ? 'bg-coral-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300' }} hover:bg-coral-400 dark:hover:bg-coral-600 transition-colors"
+                                    wire:click="$set('selectedCategory', '{{ $category }}')"
+                                    class="px-4 py-2 rounded-lg transition-colors duration-300 
+                                        {{ $selectedCategory === $category 
+                                            ? 'bg-orange-500 text-white' 
+                                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}"
                                 >
                                     {{ $category }}
                                 </button>
                             @endif
                         @endforeach
+                        
                     </div>
                 </div>
             </div>
@@ -92,7 +99,7 @@
                                             $imageUrl = $product->image_url 
                                                 ? (str_starts_with($product->image_url, 'http') 
                                                     ? $product->image_url 
-                                                    : asset('storage/' . $product->formatted_image_url))
+                                                    : asset($product->formatted_image_url))
                                                 : $placeholderUrl;
                                         @endphp
                                         <img 
@@ -125,7 +132,7 @@
                                                     +
                                                 </button>
                                             </div>
-                                            <span class="text-xl font-bold text-coral-500 whitespace-nowrap ml-auto">₱{{ number_format($product->price, 2) }}</span>
+                                            <span class="text-xl font-bold text-orange-500 whitespace-nowrap ml-auto">₱{{ number_format($product->price, 2) }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -135,7 +142,7 @@
                 
                                     <button 
                                         wire:click="addToCart({{ $product->id }})"
-                                        class="w-full px-4 py-2 bg-coral-500 text-white rounded-full hover:bg-coral-600 transition-colors text-center text-sm font-medium"
+                                        class="w-full px-4 py-2 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors text-center text-sm font-medium"
                                     >
                                         Add to Cart
                                     </button>
@@ -165,7 +172,7 @@
                                     <input 
                                         type="checkbox" 
                                         wire:model.live="selectedCartItems.{{ $productId }}"
-                                        class="w-4 h-4 text-coral-600 border-gray-300 rounded focus:ring-coral-500"
+                                        class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                                     >
                                 </div>
 
@@ -176,7 +183,7 @@
                                     $imageUrl = $cartProduct && $cartProduct->image_url 
                                         ? (str_starts_with($cartProduct->image_url, 'http') 
                                             ? $cartProduct->image_url 
-                                            : asset('storage/' . $cartProduct->image_url))
+                                            : asset('storage/' . $cartProduct->formatted_image_url))
                                         : $placeholderUrl;
                                 @endphp
                                 <div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
@@ -197,14 +204,14 @@
                                     <div class="flex items-center space-x-2 mt-2">
                                         <button 
                                             wire:click="updateQuantity({{ $productId }}, -1)"
-                                            class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-coral-100 dark:hover:bg-coral-900"
+                                            class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-orange-100 dark:hover:bg-orange-900"
                                         >
                                             -
                                         </button>
                                         <span class="text-sm text-gray-600 dark:text-gray-300">{{ $item['quantity'] }}</span>
                                         <button 
                                             wire:click="updateQuantity({{ $productId }}, 1)"
-                                            class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-coral-100 dark:hover:bg-coral-900"
+                                            class="w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-orange-100 dark:hover:bg-orange-900"
                                         >
                                             +
                                         </button>
@@ -213,7 +220,7 @@
 
                                 <!-- Item Total -->
                                 <div class="text-right">
-                                    <span class="text-sm font-bold text-coral-500">
+                                    <span class="text-sm font-bold text-orange-500">
                                         ₱{{ number_format($item['price'] * $item['quantity'], 2) }}
                                     </span>
                                 </div>
@@ -251,17 +258,17 @@
                                 <input 
                                     type="checkbox" 
                                     wire:model.live="selectAll"
-                                    class="w-4 h-4 text-coral-600 border-gray-300 rounded focus:ring-coral-500"
+                                    class="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
                                 >
                                 <span class="text-base font-medium text-gray-900 dark:text-gray-100">Total</span>
                             </div>
-                            <span class="text-xl font-bold text-coral-500">
+                            <span class="text-xl font-bold text-orange-500">
                                 ₱{{ number_format($this->selectedTotal, 2) }}
                             </span>
                         </div>
                         <button 
                             wire:click="processOrder"
-                            class="w-full px-4 py-2 bg-coral-500 text-white rounded-lg hover:bg-coral-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             {{ !$this->hasSelectedItems() ? 'disabled' : '' }}
                         >
                             Process Order
