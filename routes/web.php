@@ -1,17 +1,25 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect()->route('home');
+    }
     return view('auth.login');
 })->name('login');
 
 Route::middleware(['auth'])->group(function () {
+    Route::get('/home', function () {
+        return view('home');
+    })->name('home');
+
     Route::get('/dashboard', function () {
         return view('dashboard');
-    })->name('dashboard');
+    })->middleware(['verified'])->name('dashboard');
 
     Route::get('/products', function () {
         return view('products.index');
