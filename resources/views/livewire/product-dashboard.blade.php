@@ -84,9 +84,98 @@
                                 <textarea wire:model="description" id="description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm sm:leading-6"></textarea>
                             </div>
 
-                            <div class="col-span-6">
-                                <x-input-label for="image_url" :value="__('Image URL')" />
-                                <x-text-input wire:model="image_url" id="image_url" type="url" class="mt-1 block w-full" />
+                            <div class="col-span-6 sm:col-span-3">
+                                <x-input-label for="image" :value="__('Product Image')" />
+                                
+                                <div 
+                                    class="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 dark:border-gray-600 px-6 py-10"
+                                    x-data="{ 
+                                        dragOver: false,
+                                        handleDrop(e) {
+                                            e.preventDefault();
+                                            this.dragOver = false;
+                                            if (e.dataTransfer.files.length > 0) {
+                                                @this.upload('image', e.dataTransfer.files[0]);
+                                            }
+                                        }
+                                    }"
+                                    x-on:dragover.prevent="dragOver = true"
+                                    x-on:dragleave.prevent="dragOver = false"
+                                    x-on:drop="handleDrop($event)"
+                                    :class="{ 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20': dragOver }"
+                                >
+                                    <div class="text-center">
+                                        <!-- Preview Area -->
+                                        @if ($image || $image_url)
+                                            <div class="relative w-48 mx-auto">
+                                                <img src="{{ $image ? $image->temporaryUrl() : $image_url }}" 
+                                                     class="h-48 w-48 object-cover rounded-lg shadow-lg" 
+                                                     alt="Product preview">
+                                                <!-- Remove Image Button -->
+                                                <button 
+                                                    type="button"
+                                                    wire:click="removeImage"
+                                                    class="absolute -top-3 -right-3 rounded-full bg-red-500 text-white p-1.5 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm"
+                                                    title="Remove image"
+                                                >
+                                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        @else
+                                            <svg class="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm18-9.791a.75.75 0 00-1.06-1.06L6.94 19.21a.75.75 0 001.06 1.06l12-12z" clip-rule="evenodd" />
+                                            </svg>
+                                        @endif
+
+                                        <div class="mt-4 flex flex-col items-center text-sm leading-6 text-gray-600 dark:text-gray-400">
+                                            <label for="image" class="relative cursor-pointer rounded-md bg-white dark:bg-gray-800 font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">
+                                                <span>Upload a file</span>
+                                                <input 
+                                                    type="file" 
+                                                    wire:model="image" 
+                                                    id="image" 
+                                                    class="sr-only"
+                                                    accept="image/*"
+                                                />
+                                            </label>
+                                            <p class="pl-1">or drag and drop</p>
+                                            <p class="text-xs leading-5">PNG, JPG, GIF up to 1MB</p>
+                                        </div>
+
+                                        <!-- Loading indicator -->
+                                        <div wire:loading wire:target="image" class="mt-2">
+                                            <div class="inline-flex items-center">
+                                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                <span class="text-sm text-gray-500 dark:text-gray-400">Uploading...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @error('image') 
+                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-3">
+                                <x-input-label for="image_url" :value="__('Image URL (Optional)')" />
+                                <div class="mt-2">
+                                    <x-text-input 
+                                        wire:model="image_url" 
+                                        id="image_url" 
+                                        type="url" 
+                                        class="block w-full" 
+                                        placeholder="https://example.com/image.jpg"
+                                    />
+                                </div>
+                                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                    Provide a URL if the image is hosted elsewhere
+                                </p>
                             </div>
 
                             <div class="col-span-6 flex justify-end space-x-4">

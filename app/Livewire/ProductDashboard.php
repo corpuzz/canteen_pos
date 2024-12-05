@@ -5,10 +5,13 @@ namespace App\Livewire;
 use App\Models\Product;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 
 class ProductDashboard extends Component
 {
     use WithPagination;
+    use WithFileUploads;
 
     public $search = '';
     public $name = '';
@@ -17,6 +20,7 @@ class ProductDashboard extends Component
     public $stock = '';
     public $category = '';
     public $image_url = '';
+    public $image;
     public $isCreating = false;
     public $editingProductId = null;
 
@@ -46,23 +50,22 @@ class ProductDashboard extends Component
 
     public function create()
     {
-        $this->validate([
-            'name' => 'required',
+        $validatedData = $this->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'image_url' => 'nullable|url',
+            'category' => 'required|string',
+            'image' => 'nullable|image|max:1024', // max 1MB
         ]);
 
-        Product::create([
-            'name' => $this->name,
-            'description' => $this->description,
-            'price' => $this->price,
-            'stock' => $this->stock,
-            'category' => $this->category,
-            'image_url' => $this->image_url,
-        ]);
+        if ($this->image) {
+            $imagePath = $this->image->store('products', 'public');
+            $validatedData['image_url'] = Storage::url($imagePath);
+        }
 
-        $this->reset(['name', 'description', 'price', 'stock', 'category', 'image_url', 'isCreating']);
+        Product::create($validatedData);
+        $this->reset(['name', 'description', 'price', 'stock', 'category', 'image_url', 'image', 'isCreating']);
         session()->flash('message', 'Product created successfully.');
     }
 
@@ -85,35 +88,47 @@ class ProductDashboard extends Component
 
     public function update()
     {
-        $this->validate([
-            'name' => 'required',
+        $validatedData = $this->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'image_url' => 'nullable|url',
+            'category' => 'required|string',
+            'image' => 'nullable|image|max:1024', // max 1MB
         ]);
 
         $product = Product::find($this->editingProductId);
-        $product->update([
-            'name' => $this->name,
-            'description' => $this->description,
-            'price' => $this->price,
-            'stock' => $this->stock,
-            'category' => $this->category,
-            'image_url' => $this->image_url,
-        ]);
 
-        $this->reset(['name', 'description', 'price', 'stock', 'category', 'image_url', 'editingProductId']);
+        if ($this->image) {
+            // Delete old image if exists
+            if ($product->image_url) {
+                $oldPath = str_replace('/storage/', '', $product->image_url);
+                Storage::disk('public')->delete($oldPath);
+            }
+            
+            $imagePath = $this->image->store('products', 'public');
+            $validatedData['image_url'] = Storage::url($imagePath);
+        }
+
+        $product->update($validatedData);
+        $this->reset(['name', 'description', 'price', 'stock', 'category', 'image_url', 'image', 'editingProductId']);
         session()->flash('message', 'Product updated successfully.');
     }
 
     public function cancelEdit()
     {
-        $this->reset(['name', 'description', 'price', 'stock', 'category', 'image_url', 'editingProductId', 'isCreating']);
+        $this->reset(['name', 'description', 'price', 'stock', 'category', 'image_url', 'image', 'editingProductId', 'isCreating']);
     }
 
     public function toggleCreating()
     {
         $this->isCreating = !$this->isCreating;
+    }
+
+    public function removeImage()
+    {
+        $this->image = null;
+        $this->image_url = null;
     }
 
     protected $listeners = [
