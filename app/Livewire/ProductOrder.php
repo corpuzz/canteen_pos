@@ -17,11 +17,23 @@ class ProductOrder extends Component
     public $orderType = 'dine-in';
     public $cart = [];
     public $categories = [];
+    public $quantities = [];
 
     public function mount()
     {
         $this->categories = array_merge(['All'], Product::distinct('category')->pluck('category')->toArray());
         $this->cart = session()->get('cart', []);
+        $this->initializeQuantities();
+    }
+
+    public function initializeQuantities()
+    {
+        $products = $this->products;
+        foreach ($products as $product) {
+            if (!isset($this->quantities[$product->id])) {
+                $this->quantities[$product->id] = 1;
+            }
+        }
     }
 
     public function getProductsProperty()
@@ -41,23 +53,41 @@ class ProductOrder extends Component
         $this->selectedCategory = $category === $this->selectedCategory ? '' : $category;
     }
 
+    public function incrementQuantity($productId)
+    {
+        if (!isset($this->quantities[$productId])) {
+            $this->quantities[$productId] = 1;
+        } else {
+            $this->quantities[$productId]++;
+        }
+    }
+
+    public function decrementQuantity($productId)
+    {
+        if (isset($this->quantities[$productId]) && $this->quantities[$productId] > 1) {
+            $this->quantities[$productId]--;
+        }
+    }
+
     public function addToCart($productId)
     {
         $product = Product::find($productId);
-        
         if (!$product) return;
 
+        $quantity = $this->quantities[$productId] ?? 1;
+
         if (isset($this->cart[$productId])) {
-            $this->cart[$productId]['quantity']++;
+            $this->cart[$productId]['quantity'] += $quantity;
         } else {
             $this->cart[$productId] = [
                 'name' => $product->name,
                 'price' => $product->price,
-                'quantity' => 1
+                'quantity' => $quantity
             ];
         }
 
         session()->put('cart', $this->cart);
+        $this->quantities[$productId] = 1; // Reset quantity after adding to cart
         $this->dispatch('cart-updated');
     }
 

@@ -62,7 +62,7 @@
                             wire:click="selectCategory('All')"
                             class="px-4 py-2 rounded-lg {{ $selectedCategory === 'All' ? 'bg-coral-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300' }} hover:bg-coral-400 dark:hover:bg-coral-600 transition-colors"
                         >
-                            All Products
+                            All
                         </button>
                         @foreach($categories as $category)
                             @if($category !== 'All')
@@ -80,31 +80,61 @@
 
             <!-- Products Grid -->
             <div class="p-4 overflow-auto" style="height: calc(100vh - 180px);">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     @foreach($products as $product)
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden flex flex-col h-full">
-                            <div class="w-full h-48 bg-gray-100 dark:bg-gray-700">
-                                @if($product->image_url)
-                                    <img 
-                                        src="{{ $product->formatted_image_url ?? 'https://placehold.co/400x300/png?text=' . urlencode($product->name) }}"
-                                        alt="{{ $product->name }}" 
-                                        class="w-full h-full object-cover"
-                                        onerror="this.src='https://placehold.co/400x300/png?text={{ urlencode($product->name) }}'"
-                                    >
-                                @else
-                                    <div class="w-full h-full flex items-center justify-center">
-                                        <span class="text-gray-400">{{ $product->name }}</span>
+                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-4">
+                            <div class="flex flex-col">
+                                <div class="flex space-x-4 mb-4">
+                                    <!-- Product Image -->
+                                    <div class="w-28 h-28 rounded-xl bg-gray-100 dark:bg-gray-700 overflow-hidden flex-shrink-0">
+                                        @if($product->image_url)
+                                            <img 
+                                                src="{{ $product->formatted_image_url ?? 'https://placehold.co/400x300/png?text=' . urlencode($product->name) }}"
+                                                alt="{{ $product->name }}" 
+                                                class="w-full h-full object-cover"
+                                                onerror="this.src='https://placehold.co/400x300/png?text={{ urlencode($product->name) }}'"
+                                            >
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center text-gray-400 text-sm text-center px-2">
+                                                {{ $product->name }}
+                                            </div>
+                                        @endif
                                     </div>
-                                @endif
-                            </div>
-                            <div class="p-4 flex flex-col flex-grow">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ $product->name }}</h3>
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-grow line-clamp-2">{{ $product->description }}</p>
-                                <div class="flex items-center justify-between mt-auto">
-                                    <span class="text-xl font-bold text-coral-600 dark:text-coral-400">₱{{ number_format($product->price, 2) }}</span>
+
+                                    <!-- Product Details -->
+                                    <div class="flex-1 flex flex-col overflow-hidden">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate pr-2">{{ $product->name }}</h3>
+                                        </div>
+                                        
+                                        <p class="text-gray-500 dark:text-gray-400 text-sm mb-3 line-clamp-2">{{ $product->description }}</p>
+                                        <div class="flex items-center space-x-2">
+                                            <div class="flex w-1/2 items-center bg-gray-100 dark:bg-gray-700 rounded-full">
+                                                <button 
+                                                    wire:click="decrementQuantity({{ $product->id }})" 
+                                                    class="w-8 h-8 flex items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                                >
+                                                    -
+                                                </button>
+                                                <span class="w-8 text-center text-gray-800 dark:text-gray-200">{{ $quantities[$product->id] ?? 1 }}</span>
+                                                <button 
+                                                    wire:click="incrementQuantity({{ $product->id }})" 
+                                                    class="w-8 h-8 flex items-center justify-center rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                            <span class="text-xl font-bold text-coral-500 whitespace-nowrap ml-auto">₱{{ number_format($product->price, 2) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Quantity and Add to Cart -->
+                                <div class="space-y-2">
+                
                                     <button 
                                         wire:click="addToCart({{ $product->id }})"
-                                        class="px-4 py-2 bg-coral-500 text-white rounded-lg hover:bg-coral-600 transition-colors"
+                                        class="w-full px-4 py-2 bg-coral-500 text-white rounded-full hover:bg-coral-600 transition-colors text-center text-sm font-medium"
                                     >
                                         Add to Cart
                                     </button>
