@@ -4,38 +4,60 @@ namespace App\Livewire;
 
 use App\Models\Product;
 use Livewire\Component;
-use Livewire\WithPagination;
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class ProductOrder extends Component
 {
-    use WithPagination;
+    use WithFileUploads;
 
     public $search = '';
-    public $selectedCategory = 'Coffee';
+    public $selectedCategory = '';
+    public $orderType = 'dine-in';
     public $cart = [];
-    public $orderType = 'Delivery';
+    public $categories = [];
 
     public function mount()
     {
+        $this->categories = array_merge(['All'], Product::distinct('category')->pluck('category')->toArray());
         $this->cart = session()->get('cart', []);
     }
 
-    public function addToCart($productId, $quantity = 1)
+    public function getProductsProperty()
+    {
+        return Product::when($this->search, function($query) {
+                $query->where('name', 'like', '%' . $this->search . '%');
+            })
+            ->when($this->selectedCategory && $this->selectedCategory !== 'All', function($query) {
+                $query->where('category', $this->selectedCategory);
+            })
+            ->where('is_available', true)
+            ->get();
+    }
+
+    public function selectCategory($category)
+    {
+        $this->selectedCategory = $category === $this->selectedCategory ? '' : $category;
+    }
+
+    public function addToCart($productId)
     {
         $product = Product::find($productId);
         
-        if (!isset($this->cart[$productId])) {
+        if (!$product) return;
+
+        if (isset($this->cart[$productId])) {
+            $this->cart[$productId]['quantity']++;
+        } else {
             $this->cart[$productId] = [
                 'name' => $product->name,
                 'price' => $product->price,
-                'quantity' => 0,
-                'image_url' => $product->image_url,
+                'quantity' => 1
             ];
         }
-        
-        $this->cart[$productId]['quantity'] += $quantity;
+
         session()->put('cart', $this->cart);
-        
         $this->dispatch('cart-updated');
     }
 
@@ -46,21 +68,20 @@ class ProductOrder extends Component
         $this->dispatch('cart-updated');
     }
 
-    public function updateQuantity($productId, $quantity)
+    public function updateQuantity($productId, $change)
     {
-        if ($quantity <= 0) {
+        if (!isset($this->cart[$productId])) return;
+
+        $newQuantity = $this->cart[$productId]['quantity'] + $change;
+        
+        if ($newQuantity <= 0) {
             $this->removeFromCart($productId);
             return;
         }
-        
-        $this->cart[$productId]['quantity'] = $quantity;
+
+        $this->cart[$productId]['quantity'] = $newQuantity;
         session()->put('cart', $this->cart);
         $this->dispatch('cart-updated');
-    }
-
-    public function setOrderType($type)
-    {
-        $this->orderType = $type;
     }
 
     public function getCartTotalProperty()
@@ -70,19 +91,36 @@ class ProductOrder extends Component
         });
     }
 
+    public function getFormattedImageUrl($url)
+    {
+        if (empty($url)) {
+            return null;
+        }
+
+        // If it's a full URL, return as-is
+        if (Str::startsWith($url, ['http://', 'https://'])) {
+            return $url;
+        }
+
+        // Remove any leading slashes
+        $url = ltrim($url, '/');
+
+        // Try storage path first
+        $storagePath = asset('storage/' . $url);
+        
+        // If storage path doesn't work, try public path
+        $publicPath = asset('images/' . $url);
+
+        return $storagePath;
+    }
+
     public function render()
     {
-        $products = Product::when($this->search, function($query) {
-                $query->where('name', 'like', '%' . $this->search . '%');
-            })
-            ->when($this->selectedCategory, function($query) {
-                $query->where('category', $this->selectedCategory);
-            })
-            ->get();
-
         return view('livewire.product-order', [
-            'products' => $products,
-            'categories' => ['Coffee', 'Non Coffee', 'Food', 'Snack', 'Dessert'],
+            'products' => $this->products->map(function($product) {
+                $product->formatted_image_url = $this->getFormattedImageUrl($product->image_url);
+                return $product;
+            })
         ]);
     }
 }
