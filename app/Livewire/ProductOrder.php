@@ -87,13 +87,15 @@ class ProductOrder extends Component
         $product = Product::find($productId);
         if (!$product) return;
 
+        $quantity = $this->quantities[$productId] ?? 1;
+
         if (isset($this->cart[$productId])) {
-            $this->cart[$productId]['quantity']++;
+            $this->cart[$productId]['quantity'] += $quantity;
         } else {
             $this->cart[$productId] = [
                 'name' => $product->name,
                 'price' => $product->price,
-                'quantity' => 1
+                'quantity' => $quantity
             ];
             // Auto-select newly added items
             $this->selectedCartItems[$productId] = true;
@@ -101,6 +103,7 @@ class ProductOrder extends Component
 
         session()->put('cart', $this->cart);
         $this->dispatch('cart-updated');
+        $this->quantities[$productId] = 1; // Reset quantity after adding to cart
     }
 
     public function removeFromCart($productId)
