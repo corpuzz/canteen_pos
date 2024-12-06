@@ -141,7 +141,7 @@
                                                 />
                                             </label>
                                             <p class="pl-1">or drag and drop</p>
-                                            <p class="text-xs leading-5">PNG, JPG, GIF up to 1MB</p>
+                                            <p class="text-xs leading-5">PNG, JPG, GIF up to 3MB</p>
                                         </div>
 
                                         <!-- Loading indicator -->

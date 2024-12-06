@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Product;
+use App\Models\SavedCart;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
@@ -23,13 +24,26 @@ class ProductOrder extends Component
 
     public function mount()
     {
-        $this->cart = session()->get('cart', []);
-        // Select all existing cart items by default
-        $this->selectedCartItems = collect($this->cart)
-            ->mapWithKeys(fn($item, $productId) => [$productId => true])
-            ->toArray();
-        $this->quantities = array_fill_keys(array_keys($this->cart), 1);
+        $this->cart = [];
+        $this->selectedCartItems = [];
+        $this->quantities = [];
         
+        // Load saved cart if exists
+        $savedCart = SavedCart::where('user_id', auth()->id())
+            ->where('is_processed', false)
+            ->latest()
+            ->first();
+
+        if ($savedCart) {
+            $this->cart = $savedCart->cart_data;
+            // Initialize selected items
+            foreach (array_keys($this->cart) as $productId) {
+                $this->selectedCartItems[$productId] = true;
+            }
+            // Check if all items are selected
+            $this->updateSelectAllState();
+        }
+
         // Fetch categories
         $this->categories = Product::select('category')
             ->distinct()
@@ -101,6 +115,17 @@ class ProductOrder extends Component
             $this->selectedCartItems[$productId] = true;
         }
 
+        // Save cart to database
+        SavedCart::updateOrCreate(
+            [
+                'user_id' => auth()->id(),
+                'is_processed' => false
+            ],
+            [
+                'cart_data' => $this->cart
+            ]
+        );
+
         session()->put('cart', $this->cart);
         $this->dispatch('cart-updated');
         $this->quantities[$productId] = 1; // Reset quantity after adding to cart
@@ -108,7 +133,77 @@ class ProductOrder extends Component
 
     public function removeFromCart($productId)
     {
-        unset($this->cart[$productId]);
+        if (isset($this->cart[$productId])) {
+            unset($this->cart[$productId]);
+            unset($this->selectedCartItems[$productId]);
+            
+            // Update saved cart in database
+            if (empty($this->cart)) {
+                // If cart is empty, delete the saved cart
+                SavedCart::where('user_id', auth()->id())
+                    ->where('is_processed', false)
+                    ->delete();
+            } else {
+                // Update the existing cart
+                SavedCart::updateOrCreate(
+                    [
+                        'user_id' => auth()->id(),
+                        'is_processed' => false
+                    ],
+                    [
+                        'cart_data' => $this->cart
+                    ]
+                );
+            }
+
+            session()->put('cart', $this->cart);
+            $this->dispatch('cart-updated');
+        }
+    }
+
+    public function removeSelectedItems()
+    {
+        foreach ($this->selectedCartItems as $productId => $selected) {
+            if ($selected) {
+                unset($this->cart[$productId]);
+                unset($this->selectedCartItems[$productId]);
+            }
+        }
+
+        // Update saved cart in database
+        if (empty($this->cart)) {
+            // If cart is empty, delete the saved cart
+            SavedCart::where('user_id', auth()->id())
+                ->where('is_processed', false)
+                ->delete();
+        } else {
+            // Update the existing cart
+            SavedCart::updateOrCreate(
+                [
+                    'user_id' => auth()->id(),
+                    'is_processed' => false
+                ],
+                [
+                    'cart_data' => $this->cart
+                ]
+            );
+        }
+
+        session()->put('cart', $this->cart);
+        $this->dispatch('cart-updated');
+        $this->selectAll = false;
+    }
+
+    public function clearCart()
+    {
+        $this->cart = [];
+        $this->selectedCartItems = [];
+        
+        // Delete saved cart
+        SavedCart::where('user_id', auth()->id())
+            ->where('is_processed', false)
+            ->delete();
+
         session()->put('cart', $this->cart);
         $this->dispatch('cart-updated');
     }
@@ -124,6 +219,17 @@ class ProductOrder extends Component
         } else {
             $this->cart[$productId]['quantity'] = $newQuantity;
         }
+
+        // Update saved cart
+        SavedCart::updateOrCreate(
+            [
+                'user_id' => auth()->id(),
+                'is_processed' => false
+            ],
+            [
+                'cart_data' => $this->cart
+            ]
+        );
 
         session()->put('cart', $this->cart);
         $this->dispatch('cart-updated');
@@ -150,31 +256,11 @@ class ProductOrder extends Component
 
     public function toggleSelectAll()
     {
-        if (count($this->selectedCartItems) === count($this->cart)) {
-            $this->selectedCartItems = [];
-        } else {
-            $this->selectedCartItems = collect($this->cart)
-                ->mapWithKeys(fn($item, $productId) => [$productId => true])
-                ->toArray();
-        }
-    }
-
-    public function removeSelectedItems()
-    {
-        // Only remove the items that are currently selected
-        foreach ($this->selectedCartItems as $productId => $selected) {
-            if ($selected) {
-                unset($this->cart[$productId]);
-            }
-        }
+        $this->selectAll = !$this->selectAll;
         
-        // Clear the selected items
-        $this->selectedCartItems = [];
-        $this->selectAll = false;
-        
-        // Update the session
-        session()->put('cart', $this->cart);
-        $this->dispatch('cart-updated');
+        foreach ($this->cart as $productId => $item) {
+            $this->selectedCartItems[$productId] = $this->selectAll;
+        }
     }
 
     public function getSelectedItemsCountProperty()
@@ -240,8 +326,17 @@ class ProductOrder extends Component
 
     public function updatedSelectedCartItems()
     {
-        // Update select all checkbox state
-        $this->selectAll = count($this->selectedCartItems) === count($this->cart);
+        $this->updateSelectAllState();
+    }
+
+    private function updateSelectAllState()
+    {
+        if (empty($this->cart)) {
+            $this->selectAll = false;
+            return;
+        }
+
+        $this->selectAll = count(array_filter($this->selectedCartItems)) === count($this->cart);
     }
 
     public function render()

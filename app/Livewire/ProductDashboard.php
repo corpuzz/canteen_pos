@@ -56,7 +56,7 @@ class ProductDashboard extends Component
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'category' => 'required|string',
-            'image' => 'nullable|image|max:1024', // max 1MB
+            'image' => 'nullable|image|max:3000', // max 1MB
         ]);
 
         if ($this->image) {
@@ -94,7 +94,7 @@ class ProductDashboard extends Component
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'category' => 'required|string',
-            'image' => 'nullable|image|max:1024', // max 1MB
+            'image' => 'nullable|image|max:3000', // max 1MB
         ]);
 
         $product = Product::find($this->editingProductId);

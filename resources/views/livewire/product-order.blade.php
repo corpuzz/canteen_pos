@@ -280,7 +280,7 @@
                                     $imageUrl = $cartProduct && $cartProduct->image_url 
                                         ? (str_starts_with($cartProduct->image_url, 'http') 
                                             ? $cartProduct->image_url 
-                                            : asset('storage/' . $cartProduct->formatted_image_url))
+                                            : asset('' . $cartProduct->formatted_image_url))
                                         : $placeholderUrl;
                                 @endphp
                                 <div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
