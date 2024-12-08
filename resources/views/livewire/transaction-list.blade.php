@@ -1,4 +1,4 @@
-<div class="px-6 py-0">
+<div class="{{ request()->routeIs('dashboard') ? 'px-6 py-0' : 'px-6 py-6' }}">
     <!-- Search Bar -->
     <div class="mb-6 grid grid-cols-12 gap-4">
             <div class="relative col-span-12 flex-grow">

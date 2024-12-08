@@ -113,17 +113,41 @@ use Illuminate\Support\Str;
                     <div class="max-w-7xl mx-auto">
                         <!-- Search -->
                         <div class="relative">
-                            <input wire:model.live="search" type="text" placeholder="Search products..." class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-orange-500 focus:border-orange-500">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <input 
+                                wire:model.live="search" 
+                                type="text" 
+                                placeholder="Search products..." 
+                                class="w-full pl-10 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-orange-500 focus:border-orange-500"
+                            >
                         </div>
 
                         <!-- Categories -->
                         <div class="mt-4 flex flex-wrap gap-2 mb-4">
-                            <button wire:click="$set('selectedCategory', 'All')" class="px-4 py-2 rounded-lg transition-colors duration-300 {{ $selectedCategory === 'All' ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+                            <button 
+                                wire:click="$set('selectedCategory', 'All')" 
+                                class="px-4 py-2 rounded-lg transition-colors duration-300 
+                                    {{ $selectedCategory === 'All' 
+                                        ? 'bg-orange-500 text-white' 
+                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}
+                                    active:bg-orange-600 active:scale-95"
+                            >
                                 All
                             </button>
                             @foreach($categories as $category)
                                 @if($category !== 'All')
-                                    <button wire:click="$set('selectedCategory', '{{ $category }}')" class="px-4 py-2 rounded-lg transition-colors duration-300 {{ $selectedCategory === $category ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+                                    <button 
+                                        wire:click="$set('selectedCategory', '{{ $category }}')" 
+                                        class="px-4 py-2 rounded-lg transition-colors duration-300 
+                                            {{ $selectedCategory === $category 
+                                                ? 'bg-orange-500 text-white' 
+                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}
+                                            active:bg-orange-600 active:scale-95"
+                                    >
                                         {{ $category }}
                                     </button>
                                 @endif
