@@ -15,7 +15,7 @@ class ProductOrder extends Component
     use WithFileUploads;
 
     public $search = '';
-    public $selectedCategory = 'All';
+    public $selectedCategory = null;
     public $orderType = 'dine-in';
     public $cart = [];
     public $categories = [];
@@ -24,7 +24,7 @@ class ProductOrder extends Component
     public $selectAll = false;
     public $searchQuery = '';
     public $showReceipt = false;
-    public $currentTransaction;
+    public $currentTransaction = null;
 
     public function mount()
     {
@@ -38,10 +38,14 @@ class ProductOrder extends Component
                 'price' => $cartItem->product->price,
                 'quantity' => $cartItem->quantity
             ];
+            // Set default checkbox state to checked
+            $this->selectedCartItems[$cartItem->product_id] = true;
+            // Initialize quantities
+            $this->quantities[$cartItem->product_id] = 1;
         }
         
         session()->put('cart', $this->cart);
-        $this->selectedCartItems = [];
+        $this->updateSelectAllState();
 
         // Fetch categories
         $this->categories = Product::select('category')
@@ -49,17 +53,6 @@ class ProductOrder extends Component
             ->pluck('category')
             ->prepend('All')
             ->toArray();
-        $this->initializeQuantities();
-    }
-
-    public function initializeQuantities()
-    {
-        $products = $this->products;
-        foreach ($products as $product) {
-            if (!isset($this->quantities[$product->id])) {
-                $this->quantities[$product->id] = 1;
-            }
-        }
     }
 
     public function getProductsProperty()
@@ -81,10 +74,10 @@ class ProductOrder extends Component
 
     public function incrementQuantity($productId)
     {
-        if (!isset($this->quantities[$productId])) {
-            $this->quantities[$productId] = 1;
-        } else {
+        if (isset($this->quantities[$productId])) {
             $this->quantities[$productId]++;
+        } else {
+            $this->quantities[$productId] = 2;
         }
     }
 
@@ -103,10 +96,12 @@ class ProductOrder extends Component
             return;
         }
 
+        $quantity = $this->quantities[$productId] ?? 1;
+
         // Create or update cart item in database
         $cartItem = auth()->user()->cartItems()->updateOrCreate(
             ['product_id' => $productId],
-            ['quantity' => isset($this->cart[$productId]) ? $this->cart[$productId]['quantity'] + 1 : 1]
+            ['quantity' => isset($this->cart[$productId]) ? $this->cart[$productId]['quantity'] + $quantity : $quantity]
         );
 
         // Update local cart
@@ -117,8 +112,14 @@ class ProductOrder extends Component
             'quantity' => $cartItem->quantity
         ];
 
+        // Set default checkbox state to checked for new items
+        $this->selectedCartItems[$productId] = true;
+        // Reset quantity after adding to cart
+        $this->quantities[$productId] = 1;
+
         session()->put('cart', $this->cart);
         $this->dispatch('cart-updated');
+        $this->updateSelectAllState();
     }
 
     public function removeFromCart($productId)
@@ -136,46 +137,38 @@ class ProductOrder extends Component
 
     public function removeSelectedItems()
     {
-        foreach ($this->selectedCartItems as $productId => $selected) {
-            if ($selected) {
-                unset($this->cart[$productId]);
-                unset($this->selectedCartItems[$productId]);
-            }
+        if (empty($this->selectedCartItems)) {
+            return;
         }
 
-        // Update saved cart in database
-        if (empty($this->cart)) {
-            // If cart is empty, delete the saved cart
-            SavedCart::where('user_id', auth()->id())
-                ->where('is_processed', false)
-                ->delete();
-        } else {
-            // Update the existing cart
-            SavedCart::updateOrCreate(
-                [
-                    'user_id' => auth()->id(),
-                    'is_processed' => false
-                ],
-                [
-                    'cart_data' => $this->cart
-                ]
-            );
+        // Get selected product IDs
+        $selectedProductIds = array_keys(array_filter($this->selectedCartItems));
+
+        // Remove from database
+        auth()->user()->cartItems()->whereIn('product_id', $selectedProductIds)->delete();
+
+        // Remove from local cart
+        foreach ($selectedProductIds as $productId) {
+            unset($this->cart[$productId]);
+            unset($this->selectedCartItems[$productId]);
+            unset($this->quantities[$productId]);
         }
 
         session()->put('cart', $this->cart);
         $this->dispatch('cart-updated');
-        $this->selectAll = false;
+        $this->updateSelectAllState();
     }
 
     public function clearCart()
     {
+        // Clear from database
+        auth()->user()->cartItems()->delete();
+
+        // Clear local cart
         $this->cart = [];
         $this->selectedCartItems = [];
-        
-        // Delete saved cart
-        SavedCart::where('user_id', auth()->id())
-            ->where('is_processed', false)
-            ->delete();
+        $this->quantities = [];
+        $this->selectAll = false;
 
         session()->put('cart', $this->cart);
         $this->dispatch('cart-updated');
@@ -183,27 +176,24 @@ class ProductOrder extends Component
 
     public function updateQuantity($productId, $change)
     {
-        if (!isset($this->cart[$productId])) return;
-
-        $newQuantity = $this->cart[$productId]['quantity'] + $change;
-        
-        if ($newQuantity <= 0) {
-            unset($this->cart[$productId]);
-        } else {
-            $this->cart[$productId]['quantity'] = $newQuantity;
+        if (!isset($this->cart[$productId])) {
+            return;
         }
 
-        // Update saved cart
-        SavedCart::updateOrCreate(
-            [
-                'user_id' => auth()->id(),
-                'is_processed' => false
-            ],
-            [
-                'cart_data' => $this->cart
-            ]
-        );
+        $newQuantity = $this->cart[$productId]['quantity'] + $change;
+        if ($newQuantity < 1) {
+            $this->removeFromCart($productId);
+            return;
+        }
 
+        // Update database
+        auth()->user()->cartItems()->where('product_id', $productId)->update([
+            'quantity' => $newQuantity
+        ]);
+
+        // Update local cart
+        $this->cart[$productId]['quantity'] = $newQuantity;
+        
         session()->put('cart', $this->cart);
         $this->dispatch('cart-updated');
     }
