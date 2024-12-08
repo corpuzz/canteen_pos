@@ -1,5 +1,5 @@
-<div class="py-6">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+<div class="py-0">
+    <div class="max-w-full mx-auto sm:px-1 lg:px-6">
         <!-- Search and Create Button -->
         <div class="mb-6 grid grid-cols-12 gap-4">
             <div class="relative col-span-9 flex-grow">
@@ -193,7 +193,7 @@
         @endif
 
         <!-- Products Table -->
-        <div class="overflow-x-auto bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+        <div class="overflow-x-auto bg-white dark:bg-gray-800 shadow-md sm:rounded-lg">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
@@ -205,7 +205,7 @@
                         <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-800">
                     @forelse($products as $product)
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                             <td class="px-6 py-4 whitespace-nowrap">

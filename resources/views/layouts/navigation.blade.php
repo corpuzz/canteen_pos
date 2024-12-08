@@ -11,8 +11,11 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-gray-900 dark:text-gray-300">
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex justify-center">
+                    <x-nav-link :href="route('home')" class="text-gray-900 dark:text-gray-300 w-20 text-center justify-center">
+                        {{ __('Home') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-gray-900 dark:text-gray-300 w-20 text-center justify-center">
                         {{ __('Dashboard') }}
                     </x-nav-link>
                 </div>

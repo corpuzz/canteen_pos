@@ -38,7 +38,7 @@ class ProductDashboard extends Component
             ->when($this->category, function ($query) {
                 return $query->where('category', $this->category);
             })
-            ->paginate(6);
+            ->paginate(10);
 
         $categories = Product::distinct('category')->pluck('category');
 

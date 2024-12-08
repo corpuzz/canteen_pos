@@ -25,6 +25,8 @@ class ProductOrder extends Component
     public $searchQuery = '';
     public $showReceipt = false;
     public $currentTransaction = null;
+    public $activeTab = 'menu';
+  
 
     public function mount()
     {
@@ -339,13 +341,35 @@ class ProductOrder extends Component
         $this->selectAll = count(array_filter($this->selectedCartItems)) === count($this->cart);
     }
 
+    public function setActiveTab($tab)
+    {
+        $this->activeTab = $tab;
+    }
+
     public function render()
     {
-        return view('livewire.product-order', [
-            'products' => $this->products->map(function($product) {
-                $product->formatted_image_url = $this->getFormattedImageUrl($product->image_url);
-                return $product;
+        // Fetch products based on search and category
+        $products = Product::query()
+            ->when($this->search, function($query) {
+                $query->where('name', 'like', '%' . $this->search . '%')
+                      ->orWhere('description', 'like', '%' . $this->search . '%');
             })
-        ]);
+            ->when($this->selectedCategory && $this->selectedCategory !== 'All', function($query) {
+                $query->where('category', $this->selectedCategory);
+            })
+            ->get();
+
+        // Fetch categories
+        $categories = ['All'] + Product::distinct('category')->pluck('category')->toArray();
+
+        // Prepare data for view
+        $data = [
+            'products' => $products,
+            'categories' => $categories,
+            'activeTab' => $this->activeTab
+        ];
+
+        return view('livewire.product-order', $data);
     }
+    
 }
