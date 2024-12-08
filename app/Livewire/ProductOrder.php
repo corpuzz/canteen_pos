@@ -229,7 +229,8 @@ class ProductOrder extends Component
             'order_items' => $selectedItems,
             'payment_method' => 'Cash',
             'amount_paid' => $totalAmount,
-            'change' => 0
+            'change' => 0,
+            'user_id' => auth()->id()  // Add the user_id
         ]);
     
         // Remove processed items from cart

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\User;
 
 class Transaction extends Model
 {
@@ -15,10 +17,16 @@ class Transaction extends Model
         'order_items',
         'payment_method',
         'amount_paid',
-        'change'
+        'change',
+        'user_id'
     ];
 
     protected $casts = [
         'order_items' => 'array'
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

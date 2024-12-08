@@ -13,69 +13,84 @@ class ProductSeeder extends Seeder
     public function run(): void
     {
         $products = [
+            // Filipino Main Dishes
             [
-                'name' => 'Classic Burger',
-                'description' => 'Juicy beef patty with fresh lettuce, tomatoes, and our special sauce',
-                'price' => 8.99,
-                'stock' => 50,
-                'category' => 'Burgers',
-                'image_url' => 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500'
-            ],
-            [
-                'name' => 'Chicken Caesar Salad',
-                'description' => 'Fresh romaine lettuce, grilled chicken, parmesan cheese, and caesar dressing',
-                'price' => 10.99,
-                'stock' => 30,
-                'category' => 'Salads',
-                'image_url' => 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=500'
-            ],
-            [
-                'name' => 'Margherita Pizza',
-                'description' => 'Fresh mozzarella, tomatoes, and basil on our homemade crust',
-                'price' => 14.99,
-                'stock' => 25,
-                'category' => 'Pizza',
-                'image_url' => 'https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?w=500'
-            ],
-            [
-                'name' => 'Iced Caramel Latte',
-                'description' => 'Espresso with caramel syrup and milk over ice',
-                'price' => 4.99,
+                'name' => 'Lumpia Shanghai',
+                'description' => 'Crispy Filipino spring rolls filled with ground pork, carrots, and spices',
+                'price' => 45.00,
                 'stock' => 100,
-                'category' => 'Beverages',
-                'image_url' => 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500'
+                'category' => 'Food',
+                'image_url' => 'https://images.unsplash.com/photo-1601628828688-632f38a5a7d0?w=500'
             ],
             [
-                'name' => 'Chocolate Brownie',
-                'description' => 'Rich, fudgy brownie with chocolate chips',
-                'price' => 3.99,
-                'stock' => 40,
-                'category' => 'Desserts',
-                'image_url' => 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500'
+                'name' => 'Chicken Siomai',
+                'description' => 'Steamed Filipino-Chinese dumplings with ground chicken and vegetables',
+                'price' => 35.00,
+                'stock' => 80,
+                'category' => 'Food',
+                'image_url' => 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=500'
             ],
             [
-                'name' => 'Fish and Chips',
-                'description' => 'Crispy battered cod with golden fries and tartar sauce',
-                'price' => 12.99,
-                'stock' => 35,
-                'category' => 'Main Course',
-                'image_url' => 'https://images.unsplash.com/photo-1579208575657-c595a05383b7?w=500'
+                'name' => 'Beef Shawarma Rice',
+                'description' => 'Grilled beef strips with rice, vegetables, and special sauce',
+                'price' => 89.00,
+                'stock' => 50,
+                'category' => 'Food',
+                'image_url' => 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=500'
             ],
+            
+            // Filipino Snacks
             [
-                'name' => 'Fruit Smoothie',
-                'description' => 'Blend of fresh seasonal fruits with yogurt',
-                'price' => 5.99,
+                'name' => 'Turon',
+                'description' => 'Sweet banana and jackfruit spring rolls with caramelized sugar coating',
+                'price' => 20.00,
                 'stock' => 60,
-                'category' => 'Beverages',
-                'image_url' => 'https://images.unsplash.com/photo-1505252585461-04db1eb84625?w=500'
+                'category' => 'Snack',
+                'image_url' => 'https://images.unsplash.com/photo-1624374053855-39a5a1a41402?w=500'
             ],
             [
-                'name' => 'Pasta Carbonara',
-                'description' => 'Spaghetti with creamy sauce, pancetta, and parmesan',
-                'price' => 13.99,
-                'stock' => 45,
-                'category' => 'Pasta',
-                'image_url' => 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=500'
+                'name' => 'Kwek-Kwek',
+                'description' => 'Deep-fried orange battered quail eggs with vinegar dip',
+                'price' => 25.00,
+                'stock' => 70,
+                'category' => 'Snack',
+                'image_url' => 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=500'
+            ],
+            
+            // Filipino Drinks
+            [
+                'name' => 'Sago\'t Gulaman',
+                'description' => 'Sweet Filipino drink with tapioca pearls and gelatin',
+                'price' => 25.00,
+                'stock' => 100,
+                'category' => 'Drink',
+                'image_url' => 'https://images.unsplash.com/photo-1562707786-c0b4cc0a8746?w=500'
+            ],
+            [
+                'name' => 'Melon Juice',
+                'description' => 'Fresh and sweet cantaloupe juice',
+                'price' => 30.00,
+                'stock' => 80,
+                'category' => 'Drink',
+                'image_url' => 'https://images.unsplash.com/photo-1622597467836-f3c7ca3b4c25?w=500'
+            ],
+            
+            // Filipino Coffee
+            [
+                'name' => 'Barako Coffee',
+                'description' => 'Strong Filipino Liberica coffee',
+                'price' => 35.00,
+                'stock' => 100,
+                'category' => 'Coffee',
+                'image_url' => 'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=500'
+            ],
+            [
+                'name' => 'Iced Kapeng Pinoy',
+                'description' => 'Sweet iced Filipino coffee with creamer',
+                'price' => 40.00,
+                'stock' => 90,
+                'category' => 'Coffee',
+                'image_url' => 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500'
             ],
         ];
 

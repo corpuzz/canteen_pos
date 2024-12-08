@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class TransactionList extends Component
 {
@@ -46,6 +47,7 @@ class TransactionList extends Component
     public function render()
     {
         $query = Transaction::query()
+            ->where('user_id', Auth::id())  // Always filter by current user
             ->when($this->search, function($query) {
                 $query->where(function($q) {
                     $q->where('transaction_number', 'like', '%' . $this->search . '%')
