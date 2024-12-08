@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Product;
 use App\Models\SavedCart;
+use App\Models\Transaction;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
@@ -21,28 +22,26 @@ class ProductOrder extends Component
     public $quantities = [];
     public $selectedCartItems = [];
     public $selectAll = false;
+    public $searchQuery = '';
+    public $showReceipt = false;
+    public $currentTransaction;
 
     public function mount()
     {
-        $this->cart = [];
-        $this->selectedCartItems = [];
-        $this->quantities = [];
+        // Load cart items from database
+        $cartItems = auth()->user()->cartItems()->with('product')->get();
         
-        // Load saved cart if exists
-        $savedCart = SavedCart::where('user_id', auth()->id())
-            ->where('is_processed', false)
-            ->latest()
-            ->first();
-
-        if ($savedCart) {
-            $this->cart = $savedCart->cart_data;
-            // Initialize selected items
-            foreach (array_keys($this->cart) as $productId) {
-                $this->selectedCartItems[$productId] = true;
-            }
-            // Check if all items are selected
-            $this->updateSelectAllState();
+        foreach ($cartItems as $cartItem) {
+            $this->cart[$cartItem->product_id] = [
+                'id' => $cartItem->product_id,
+                'name' => $cartItem->product->name,
+                'price' => $cartItem->product->price,
+                'quantity' => $cartItem->quantity
+            ];
         }
+        
+        session()->put('cart', $this->cart);
+        $this->selectedCartItems = [];
 
         // Fetch categories
         $this->categories = Product::select('category')
@@ -99,66 +98,40 @@ class ProductOrder extends Component
     public function addToCart($productId)
     {
         $product = Product::find($productId);
-        if (!$product) return;
-
-        $quantity = $this->quantities[$productId] ?? 1;
-
-        if (isset($this->cart[$productId])) {
-            $this->cart[$productId]['quantity'] += $quantity;
-        } else {
-            $this->cart[$productId] = [
-                'name' => $product->name,
-                'price' => $product->price,
-                'quantity' => $quantity
-            ];
-            // Auto-select newly added items
-            $this->selectedCartItems[$productId] = true;
+        
+        if (!$product) {
+            return;
         }
 
-        // Save cart to database
-        SavedCart::updateOrCreate(
-            [
-                'user_id' => auth()->id(),
-                'is_processed' => false
-            ],
-            [
-                'cart_data' => $this->cart
-            ]
+        // Create or update cart item in database
+        $cartItem = auth()->user()->cartItems()->updateOrCreate(
+            ['product_id' => $productId],
+            ['quantity' => isset($this->cart[$productId]) ? $this->cart[$productId]['quantity'] + 1 : 1]
         );
+
+        // Update local cart
+        $this->cart[$productId] = [
+            'id' => $productId,
+            'name' => $product->name,
+            'price' => $product->price,
+            'quantity' => $cartItem->quantity
+        ];
 
         session()->put('cart', $this->cart);
         $this->dispatch('cart-updated');
-        $this->quantities[$productId] = 1; // Reset quantity after adding to cart
     }
 
     public function removeFromCart($productId)
     {
-        if (isset($this->cart[$productId])) {
-            unset($this->cart[$productId]);
-            unset($this->selectedCartItems[$productId]);
-            
-            // Update saved cart in database
-            if (empty($this->cart)) {
-                // If cart is empty, delete the saved cart
-                SavedCart::where('user_id', auth()->id())
-                    ->where('is_processed', false)
-                    ->delete();
-            } else {
-                // Update the existing cart
-                SavedCart::updateOrCreate(
-                    [
-                        'user_id' => auth()->id(),
-                        'is_processed' => false
-                    ],
-                    [
-                        'cart_data' => $this->cart
-                    ]
-                );
-            }
+        // Remove from database
+        auth()->user()->cartItems()->where('product_id', $productId)->delete();
 
-            session()->put('cart', $this->cart);
-            $this->dispatch('cart-updated');
-        }
+        // Remove from local cart
+        unset($this->cart[$productId]);
+        unset($this->selectedCartItems[$productId]);
+        
+        session()->put('cart', $this->cart);
+        $this->dispatch('cart-updated');
     }
 
     public function removeSelectedItems()
@@ -239,19 +212,56 @@ class ProductOrder extends Component
     {
         if (empty($this->selectedCartItems)) return;
 
+        // Create transaction
+        $selectedItems = collect($this->cart)
+            ->filter(fn($item, $id) => isset($this->selectedCartItems[$id]))
+            ->map(function($item, $id) {
+                return [
+                    'id' => $id,
+                    'name' => $item['name'],
+                    'price' => $item['price'],
+                    'quantity' => $item['quantity']
+                ];
+            })->values()->all();
+    
+        $subtotal = collect($selectedItems)->sum(fn($item) => $item['price'] * $item['quantity']);
+        $tax = 0; // You can modify this based on your tax calculation logic
+        $totalAmount = $subtotal + $tax;
+        
+        $transaction = Transaction::create([
+            'transaction_number' => 'TXN-' . Str::random(10),
+            'cashier_name' => auth()->user()->name,
+            'subtotal' => $subtotal,
+            'tax' => $tax,
+            'total_amount' => $totalAmount,
+            'order_items' => $selectedItems,
+            'payment_method' => 'Cash',
+            'amount_paid' => $totalAmount,
+            'change' => 0
+        ]);
+    
         // Remove processed items from cart
-        foreach ($this->selectedCartItems as $productId => $selected) {
-            unset($this->cart[$productId]);
-        }
-
-        // Clear selected items
+        $this->cart = [];
         $this->selectedCartItems = [];
+        
+        // Clear cart items from database
+        auth()->user()->cartItems()->delete();
         
         // Update session
         session()->put('cart', $this->cart);
-        $this->dispatch('cart-updated');
         
-        session()->flash('message', 'Selected orders processed successfully!');
+        // Show receipt
+        $this->currentTransaction = $transaction;
+        $this->showReceipt = true;
+    
+        $this->dispatch('cart-updated');
+    }
+
+    #[On('receiptClosed')]
+    public function closeReceipt()
+    {
+        $this->showReceipt = false;
+        $this->currentTransaction = null;
     }
 
     public function toggleSelectAll()
