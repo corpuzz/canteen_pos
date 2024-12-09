@@ -14,13 +14,13 @@ use Illuminate\Support\Str;
             <!-- Navigation -->
             <nav class="flex-1 p-4 bg-gray-100 dark:bg-gray-900">
                 <div class="space-y-2">
-                    <a wire:click="setActiveTab('menu')" class="block px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-orange-400 dark:hover:bg-orange-900 hover:text-zinc-100 dark:hover:text-zinc-100 cursor-pointer flex items-center space-x-2 {{ $activeTab === 'menu' ? 'bg-orange-400 dark:bg-orange-900 text-zinc-100' : '' }}">
+                    <a wire:click="setActiveTab('menu')"  class="block px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-orange-400 dark:hover:bg-orange-900 hover:text-zinc-100 dark:hover:text-zinc-100 cursor-pointer flex items-center space-x-2 {{ $activeTab === 'menu' ? 'bg-orange-400 dark:bg-orange-900 text-zinc-100' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                         </svg>
                         <span>Menu</span>
                     </a>
-                    <a wire:click="setActiveTab('transactions')" class="block px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-orange-400 dark:hover:bg-orange-900 hover:text-zinc-100 dark:hover:text-zinc-100 cursor-pointer flex items-center space-x-2 {{ $activeTab === 'transactions' ? 'bg-orange-400 dark:bg-orange-900 text-zinc-100' : '' }}">
+                    <a wire:click="setActiveTab('transactions')"  class="block px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-orange-400 dark:hover:bg-orange-900 hover:text-zinc-100 dark:hover:text-zinc-100 cursor-pointer flex items-center space-x-2 {{ $activeTab === 'transactions' ? 'bg-orange-400 dark:bg-orange-900 text-zinc-100' : '' }}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                         </svg>
@@ -107,7 +107,7 @@ use Illuminate\Support\Str;
     <div class="flex-1 flex">
         @if($activeTab === 'menu')
             <!-- Menu Content (Left Side) -->
-            <div class="flex-1">
+            <div  class="flex-1">
                 <!-- Search and Categories -->
                 <div class="p-4 bg-white dark:bg-gray-800 shadow">
                     <div class="max-w-7xl mx-auto">
@@ -131,7 +131,7 @@ use Illuminate\Support\Str;
                             <button 
                                 wire:click="$set('selectedCategory', 'All')" 
                                 class="px-4 py-2 rounded-lg transition-colors duration-300 
-                                    {{ $selectedCategory === 'All' 
+                                    {{ $selectedCategory === 'All' || !$selectedCategory
                                         ? 'bg-orange-500 text-white' 
                                         : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}
                                     active:bg-orange-600 active:scale-95"
@@ -197,7 +197,7 @@ use Illuminate\Support\Str;
             <!-- Cart Section (Right Sidebar) -->
             <div class="w-96 bg-white dark:bg-gray-800 shadow-lg border-l border-gray-200 dark:border-gray-700 flex flex-col">
                 @if($showReceipt)
-                    <div class="bg-white dark:bg-gray-800 p-6 w-full h-full flex flex-col">
+                <div class="bg-white dark:bg-gray-800 p-6 w-full h-full flex flex-col">
                         <div class="flex-1 overflow-auto">
                             <div class="text-center mb-6">
                                 <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ 'Canteen POS' }}</h2>
@@ -280,7 +280,9 @@ use Illuminate\Support\Str;
                     </div>
 
                     <!-- Cart Items -->
-                    <div class="flex-1 overflow-y-auto bg-gray-100 dark:bg-gray-800 flex flex-col">
+                    <div 
+                    
+                    class="flex-1 overflow-y-auto bg-gray-100 dark:bg-gray-800 flex flex-col">
                         <div class="space-y-4 p-4 flex-grow">
                             @forelse($cart as $productId => $item)
                                 <div class="bg-white dark:bg-gray-800 shadow-md flex items-center gap-4 py-3 px-4 rounded-xl">
