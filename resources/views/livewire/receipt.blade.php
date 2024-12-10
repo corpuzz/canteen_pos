@@ -4,11 +4,13 @@
                                 <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ 'Canteen POS' }}</h2>
                                 <p class="text-sm text-gray-600 dark:text-gray-400">Transaction Receipt</p>
                                 <p class="text-sm text-gray-600 dark:text-gray-400">{{ $currentTransaction->created_at->format('M d, Y h:i A') }}</p>
+            
                             </div>
 
                             <div class="mb-4">
                                 <p class="text-sm text-gray-600 dark:text-gray-400">Transaction #: {{ $currentTransaction->transaction_number }}</p>
                                 <p class="text-sm text-gray-600 dark:text-gray-400">Cashier: {{ $currentTransaction->cashier_name }}</p>
+                                
                             </div>
 
                             <div class="border-t border-b border-gray-200 dark:border-gray-700 py-4 mb-4">

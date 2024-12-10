@@ -9,6 +9,8 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Session;
+
 
 class ProductOrder extends Component
 {
@@ -23,16 +25,21 @@ class ProductOrder extends Component
     public $selectedCartItems = [];
     public $selectAll = false;
     public $searchQuery = '';
-    public $showReceipt = false;
+    // public $showReceipt = false;
+    public $viewToShow = 'cart';
     public $currentTransaction = null;
     public $activeTab = 'menu';
-  
+
+    public $paymentMethod = null;
+    public $paymentAmount = null;
+    public $change = 0;
+
 
     public function mount()
     {
         // Load cart items from database
         $cartItems = auth()->user()->cartItems()->with('product')->get();
-        
+
         foreach ($cartItems as $cartItem) {
             $this->cart[$cartItem->product_id] = [
                 'id' => $cartItem->product_id,
@@ -45,7 +52,7 @@ class ProductOrder extends Component
             // Initialize quantities
             $this->quantities[$cartItem->product_id] = 1;
         }
-        
+
         session()->put('cart', $this->cart);
         $this->updateSelectAllState();
 
@@ -57,12 +64,45 @@ class ProductOrder extends Component
             ->toArray();
     }
 
+    // ============== Billing START ===============
+    public function calculateChange()
+    {
+        $totalAmount = $this->currentTransaction->total_amount ?? 0;
+        $this->change = max(0, $this->paymentAmount - $totalAmount);
+    }
+
+    public function processPayment()
+    {
+        // Validate payment
+        $this->validate([
+            'paymentMethod' => 'required|in:cash,gcash',
+            'paymentAmount' => 'required|numeric|min:' . ($this->currentTransaction->total_amount ?? 0)
+        ]);
+
+        // Process the payment logic here
+        // This might involve:
+        // 1. Updating the transaction with payment details
+        // 2. Saving payment method
+        // 3. Generating receipt
+        // 4. Clearing the cart
+
+        $this->currentTransaction->update([
+            'payment_method' => $this->paymentMethod,
+            'amount_paid' => $this->paymentAmount,
+            'change' => $this->change
+        ]);
+
+        // Show receipt or complete transaction
+        $this->viewToShow = 'receipt';
+    }
+    // ============== Billing END ===============
+
     public function getProductsProperty()
     {
-        return Product::when($this->search, function($query) {
-                $query->where('name', 'like', '%' . $this->search . '%');
-            })
-            ->when($this->selectedCategory && $this->selectedCategory !== 'All', function($query) {
+        return Product::when($this->search, function ($query) {
+            $query->where('name', 'like', '%' . $this->search . '%');
+        })
+            ->when($this->selectedCategory && $this->selectedCategory !== 'All', function ($query) {
                 $query->where('category', $this->selectedCategory);
             })
             ->where('is_available', true)
@@ -93,7 +133,7 @@ class ProductOrder extends Component
     public function addToCart($productId)
     {
         $product = Product::find($productId);
-        
+
         if (!$product) {
             return;
         }
@@ -132,7 +172,7 @@ class ProductOrder extends Component
         // Remove from local cart
         unset($this->cart[$productId]);
         unset($this->selectedCartItems[$productId]);
-        
+
         session()->put('cart', $this->cart);
         $this->dispatch('cart-updated');
     }
@@ -195,19 +235,20 @@ class ProductOrder extends Component
 
         // Update local cart
         $this->cart[$productId]['quantity'] = $newQuantity;
-        
+
         session()->put('cart', $this->cart);
         $this->dispatch('cart-updated');
     }
 
     public function processOrder()
     {
-        if (empty($this->selectedCartItems)) return;
+        if (empty($this->selectedCartItems))
+            return;
 
         // Create transaction
         $selectedItems = collect($this->cart)
-            ->filter(fn($item, $id) => isset($this->selectedCartItems[$id]))
-            ->map(function($item, $id) {
+            ->filter(fn($item, $id) => isset ($this->selectedCartItems[$id]))
+            ->map(function ($item, $id) {
                 return [
                     'id' => $id,
                     'name' => $item['name'],
@@ -215,11 +256,11 @@ class ProductOrder extends Component
                     'quantity' => $item['quantity']
                 ];
             })->values()->all();
-    
+
         $subtotal = collect($selectedItems)->sum(fn($item) => $item['price'] * $item['quantity']);
         $tax = 0; // You can modify this based on your tax calculation logic
         $totalAmount = $subtotal + $tax;
-        
+
         $transaction = Transaction::create([
             'transaction_number' => 'TXN-' . Str::random(10),
             'cashier_name' => auth()->user()->name,
@@ -232,36 +273,37 @@ class ProductOrder extends Component
             'change' => 0,
             'user_id' => auth()->id()  // Add the user_id
         ]);
-    
-        
-        
+
+
         // Clear cart items from database
         auth()->user()->cartItems()->delete();
-        
+
         // Update session
         session()->put('cart', $this->cart);
-        
+
         // Show receipt
         $this->currentTransaction = $transaction;
-        $this->showReceipt = true;
-    
+        $this->viewToShow = 'billing';
+
         $this->dispatch('cart-updated');
     }
 
     #[On('receiptClosed')]
     public function closeReceipt()
     {
+
         // Remove processed items from cart
         $this->cart = [];
         $this->selectedCartItems = [];
-        $this->showReceipt = false;
+        // $this->showReceipt = false;
+        $this->viewToShow = 'cart';
         $this->currentTransaction = null;
     }
 
     public function toggleSelectAll()
     {
         $this->selectAll = !$this->selectAll;
-        
+
         foreach ($this->cart as $productId => $item) {
             $this->selectedCartItems[$productId] = $this->selectAll;
         }
@@ -276,7 +318,7 @@ class ProductOrder extends Component
 
     public function getCartTotalProperty()
     {
-        return collect($this->cart)->sum(function($item) {
+        return collect($this->cart)->sum(function ($item) {
             return $item['price'] * $item['quantity'];
         });
     }
@@ -285,7 +327,7 @@ class ProductOrder extends Component
     public function getSelectedTotalProperty()
     {
         return collect($this->cart)
-            ->filter(fn($item, $productId) => !empty($this->selectedCartItems[$productId]))
+            ->filter(fn($item, $productId) => !empty ($this->selectedCartItems[$productId]))
             ->sum(fn($item) => $item['price'] * $item['quantity']);
     }
 
@@ -310,7 +352,7 @@ class ProductOrder extends Component
 
         // Try storage path first
         $storagePath = asset('storage/' . $url);
-        
+
         // If storage path doesn't work, try public path
         $publicPath = asset('images/' . $url);
 
@@ -352,11 +394,11 @@ class ProductOrder extends Component
     {
         // Fetch products based on search and category
         $products = Product::query()
-            ->when($this->search, function($query) {
+            ->when($this->search, function ($query) {
                 $query->where('name', 'like', '%' . $this->search . '%')
-                      ->orWhere('description', 'like', '%' . $this->search . '%');
+                    ->orWhere('description', 'like', '%' . $this->search . '%');
             })
-            ->when($this->selectedCategory && $this->selectedCategory !== 'All', function($query) {
+            ->when($this->selectedCategory && $this->selectedCategory !== 'All', function ($query) {
                 $query->where('category', $this->selectedCategory);
             })
             ->get();
@@ -373,5 +415,5 @@ class ProductOrder extends Component
 
         return view('livewire.product-order', $data);
     }
-    
+
 }
