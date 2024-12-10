@@ -26,6 +26,17 @@ use Illuminate\Support\Str;
                         </svg>
                         <span>Transactions</span>
                     </a>
+                    @if(Auth::user()->is_admin)
+                    <a href="{{ route('dashboard')}}" class="block px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-orange-400 dark:hover:bg-orange-900 hover:text-zinc-100 dark:hover:text-zinc-100 cursor-pointer flex items-center space-x-2 {{ $activeTab === 'dashboard' ? 'bg-orange-400 dark:bg-orange-900 text-zinc-100' : '' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="7" height="7" rx="1" />
+</svg>
+                        <span>Dashboard</span>
+                    </a>
+                    @endif
                 </div>
             </nav>
 
