@@ -233,9 +233,7 @@ class ProductOrder extends Component
             'user_id' => auth()->id()  // Add the user_id
         ]);
     
-        // Remove processed items from cart
-        $this->cart = [];
-        $this->selectedCartItems = [];
+        
         
         // Clear cart items from database
         auth()->user()->cartItems()->delete();
@@ -253,6 +251,9 @@ class ProductOrder extends Component
     #[On('receiptClosed')]
     public function closeReceipt()
     {
+        // Remove processed items from cart
+        $this->cart = [];
+        $this->selectedCartItems = [];
         $this->showReceipt = false;
         $this->currentTransaction = null;
     }

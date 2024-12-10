@@ -11,7 +11,7 @@ Route::get('/', function () {
         return view('home');
     }
     return view('auth.login');
-})->name('root');
+})->name('home');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/', function () {
