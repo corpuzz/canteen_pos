@@ -4,11 +4,17 @@
         <div class="flex justify-between h-16">
             <div class="flex">
                 <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
-                    </a>
+                <div class="p-4">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mr-3 text-orange-500" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 13V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v10a6 6 0 0 1-6 6H7a4 4 0 0 1-4-4v-2h12" />
+                        <path d="M8 15a4 4 0 1 0 8 0 4 4 0 1 0 -8 0" />
+                        <path d="M10 13.5V10a2 2 0 1 1 4 0v3.5" />
+                    </svg>
+                    <h1 class="text-2xl font-bold text-orange-600 dark:text-orange-400">Canteen POS</h1>
                 </div>
+            </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex justify-center">

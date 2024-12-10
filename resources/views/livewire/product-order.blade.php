@@ -8,7 +8,15 @@ use Illuminate\Support\Str;
         <div class="h-full flex flex-col">
             <!-- Logo -->
             <div class="p-4">
-                <h1 class="text-2xl font-bold text-orange-600 dark:text-orange-400">Canteen POS</h1>
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mr-3 text-orange-500" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 13V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v10a6 6 0 0 1-6 6H7a4 4 0 0 1-4-4v-2h12" />
+                        <path d="M8 15a4 4 0 1 0 8 0 4 4 0 1 0 -8 0" />
+                        <path d="M10 13.5V10a2 2 0 1 1 4 0v3.5" />
+                    </svg>
+                    <h1 class="text-2xl font-bold text-orange-600 dark:text-orange-400">Canteen POS</h1>
+                </div>
             </div>
 
             <!-- Navigation -->
@@ -143,8 +151,8 @@ use Illuminate\Support\Str;
                                 wire:click="$set('selectedCategory', 'All')" 
                                 class="px-4 py-2 rounded-lg transition-colors duration-300 
                                     {{ $selectedCategory === 'All' || !$selectedCategory
-                                        ? 'bg-orange-500 text-white' 
-                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}
+        ? 'bg-orange-500 text-white'
+        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}
                                     active:bg-orange-600 active:scale-95"
                             >
                                 All
@@ -154,9 +162,9 @@ use Illuminate\Support\Str;
                                     <button 
                                         wire:click="$set('selectedCategory', '{{ $category }}')" 
                                         class="px-4 py-2 rounded-lg transition-colors duration-300 
-                                            {{ $selectedCategory === $category 
-                                                ? 'bg-orange-500 text-white' 
-                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}
+                                            {{ $selectedCategory === $category
+                ? 'bg-orange-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}
                                             active:bg-orange-600 active:scale-95"
                                     >
                                         {{ $category }}
@@ -175,8 +183,8 @@ use Illuminate\Support\Str;
                                 <!-- Product Image -->
                                 <div class="w-36 h-36 rounded-xl bg-gray-100 dark:bg-gray-700 overflow-hidden flex-shrink-0">
                                     @php
-                                        $placeholderUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mN88R8AAtUB6R+hMPIAAAAASUVORK5CYII=';
-                                        $imageUrl = $product->image_url ? (str_starts_with($product->image_url, 'http') ? $product->image_url : asset($product->image_url)) : $placeholderUrl;
+        $placeholderUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mN88R8AAtUB6R+hMPIAAAAASUVORK5CYII=';
+        $imageUrl = $product->image_url ? (str_starts_with($product->image_url, 'http') ? $product->image_url : asset($product->image_url)) : $placeholderUrl;
                                     @endphp
                                     <img src="{{ $imageUrl }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
                                 </div>

@@ -20,7 +20,7 @@ class ProductSeeder extends Seeder
                 'price' => 45.00,
                 'stock' => 100,
                 'category' => 'Food',
-                'image_url' => 'https://images.unsplash.com/photo-1601628828688-632f38a5a7d0?w=500'
+                'image_url' => 'https://thefoodietakesflight.com/wp-content/uploads/2020/10/Lumpiang-Shanghai.jpg'
             ],
             [
                 'name' => 'Chicken Siomai',
@@ -28,7 +28,7 @@ class ProductSeeder extends Seeder
                 'price' => 35.00,
                 'stock' => 80,
                 'category' => 'Food',
-                'image_url' => 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=500'
+                'image_url' => 'https://panlasangpinoy.com/wp-content/uploads/2020/01/pork-siomai-recipe-728x750.jpg'
             ],
             [
                 'name' => 'Beef Shawarma Rice',
@@ -36,7 +36,7 @@ class ProductSeeder extends Seeder
                 'price' => 89.00,
                 'stock' => 50,
                 'category' => 'Food',
-                'image_url' => 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=500'
+                'image_url' => 'https://philippinesfoodrecipes.wordpress.com/wp-content/uploads/2016/11/pinoy-shawarma-rice.jpg'
             ],
             
             // Filipino Snacks
@@ -46,7 +46,7 @@ class ProductSeeder extends Seeder
                 'price' => 20.00,
                 'stock' => 60,
                 'category' => 'Snack',
-                'image_url' => 'https://images.unsplash.com/photo-1624374053855-39a5a1a41402?w=500'
+                'image_url' => 'https://themayakitchen.com/wp-content/uploads/2019/10/TURON.jpg'
             ],
             [
                 'name' => 'Kwek-Kwek',
@@ -54,7 +54,7 @@ class ProductSeeder extends Seeder
                 'price' => 25.00,
                 'stock' => 70,
                 'category' => 'Snack',
-                'image_url' => 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=500'
+                'image_url' => 'https://themayakitchen.com/wp-content/uploads/2020/09/Kwek-%E2%80%93-Kwek-7.jpg'
             ],
             
             // Filipino Drinks
@@ -64,7 +64,7 @@ class ProductSeeder extends Seeder
                 'price' => 25.00,
                 'stock' => 100,
                 'category' => 'Drink',
-                'image_url' => 'https://images.unsplash.com/photo-1562707786-c0b4cc0a8746?w=500'
+                'image_url' => 'https://i.ytimg.com/vi/xphYsAzeuvo/maxresdefault.jpg'
             ],
             [
                 'name' => 'Melon Juice',
@@ -72,7 +72,7 @@ class ProductSeeder extends Seeder
                 'price' => 30.00,
                 'stock' => 80,
                 'category' => 'Drink',
-                'image_url' => 'https://images.unsplash.com/photo-1622597467836-f3c7ca3b4c25?w=500'
+                'image_url' => 'https://i0.wp.com/ricelifefoodie.com/wp-content/uploads/2023/06/cantaloupe-drink-with-milk-summer-beverage-recipe.jpg?fit=810%2C1080&ssl=1'
             ],
             
             // Filipino Coffee
@@ -82,15 +82,7 @@ class ProductSeeder extends Seeder
                 'price' => 35.00,
                 'stock' => 100,
                 'category' => 'Coffee',
-                'image_url' => 'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=500'
-            ],
-            [
-                'name' => 'Iced Kapeng Pinoy',
-                'description' => 'Sweet iced Filipino coffee with creamer',
-                'price' => 40.00,
-                'stock' => 90,
-                'category' => 'Coffee',
-                'image_url' => 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500'
+                'image_url' => 'https://ph-test-11.slatic.net/p/936ba17004e93362daaf98f756e05d97.jpg'
             ],
         ];
 
