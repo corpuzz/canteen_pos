@@ -84,7 +84,7 @@
                                 <textarea wire:model="description" id="description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm sm:leading-6"></textarea>
                             </div>
 
-                            <div class="col-span-6 sm:col-span-3">
+                            <div class="col-span-6">
                                 <x-input-label for="image" :value="__('Product Image')" />
                                 
                                 <div 
@@ -106,11 +106,13 @@
                                 >
                                     <div class="text-center">
                                         <!-- Preview Area -->
-                                        @if ($image || $image_url)
+                                        @if ($image)
                                             <div class="relative w-48 mx-auto">
-                                                <img src="{{ $image ? $image->temporaryUrl() : $image_url }}" 
-                                                     class="h-48 w-48 object-cover rounded-lg shadow-lg" 
-                                                     alt="Product preview">
+                                                <img 
+                                                    src="{{ is_string($image) ? $image : $image->temporaryUrl() }}" 
+                                                    class="h-48 w-48 object-cover rounded-lg shadow-lg" 
+                                                    alt="Product preview"
+                                                >
                                                 <!-- Remove Image Button -->
                                                 <button 
                                                     type="button"
@@ -130,52 +132,33 @@
                                         @endif
 
                                         <div class="mt-4 flex flex-col items-center text-sm leading-6 text-gray-600 dark:text-gray-400">
-                                            <label for="image" class="relative cursor-pointer rounded-md bg-white dark:bg-gray-800 font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">
-                                                <span>Upload a file</span>
+                                            <div class="flex space-x-2 w-full justify-center items-center flex-col">
+                                                <label for="image" class="relative cursor-pointer rounded-md bg-white dark:bg-gray-800 font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">
+                                                    <span>Upload a file</span>
+                                                    <input 
+                                                        type="file" 
+                                                        wire:model="image" 
+                                                        id="image" 
+                                                        class="sr-only" 
+                                                        accept="image/*"
+                                                    />
+                                                </label>
+                                                <span>or</span>
                                                 <input 
-                                                    type="file" 
-                                                    wire:model="image" 
-                                                    id="image" 
-                                                    class="sr-only"
-                                                    accept="image/*"
+                                                    type="text" 
+                                                    wire:model.live="image" 
+                                                    placeholder="Paste image URL" 
+                                                    class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
                                                 />
-                                            </label>
-                                            <p class="pl-1">or drag and drop</p>
-                                            <p class="text-xs leading-5">PNG, JPG, GIF up to 3MB</p>
+                                            </div>
+                                            <p class="text-xs leading-5 text-gray-600 dark:text-gray-400 mt-1">PNG, JPG, GIF up to 3MB</p>
                                         </div>
 
-                                        <!-- Loading indicator -->
-                                        <div wire:loading wire:target="image" class="mt-2">
-                                            <div class="inline-flex items-center">
-                                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                <span class="text-sm text-gray-500 dark:text-gray-400">Uploading...</span>
-                                            </div>
-                                        </div>
+                                        @error('error')
+                                            <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                        @enderror
                                     </div>
                                 </div>
-
-                                @error('image') 
-                                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div class="col-span-6 sm:col-span-3">
-                                <x-input-label for="image_url" :value="__('Image URL (Optional)')" />
-                                <div class="mt-2">
-                                    <x-text-input 
-                                        wire:model="image_url" 
-                                        id="image_url" 
-                                        type="url" 
-                                        class="block w-full" 
-                                        placeholder="https://example.com/image.jpg"
-                                    />
-                                </div>
-                                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                    Provide a URL if the image is hosted elsewhere
-                                </p>
                             </div>
 
                             <div class="col-span-6 flex justify-end space-x-4">

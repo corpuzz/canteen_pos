@@ -48,6 +48,26 @@ class ProductDashboard extends Component
         ]);
     }
 
+    // public function create()
+    // {
+    //     $validatedData = $this->validate([
+    //         'name' => 'required|string|max:255',
+    //         'description' => 'required|string',
+    //         'price' => 'required|numeric|min:0',
+    //         'stock' => 'required|integer|min:0',
+    //         'category' => 'required|string',
+    //         'image' => 'nullable|image|max:3000', // max 1MB
+    //     ]);
+
+    //     if ($this->image) {
+    //         $imagePath = $this->image->store('products', 'public');
+    //         $validatedData['image_url'] = Storage::url($imagePath);
+    //     }
+
+    //     Product::create($validatedData);
+    //     $this->reset(['name', 'description', 'price', 'stock', 'category', 'image_url', 'image', 'isCreating']);
+    //     session()->flash('message', 'Product created successfully.');
+    // }
     public function create()
     {
         $validatedData = $this->validate([
@@ -56,19 +76,67 @@ class ProductDashboard extends Component
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'category' => 'required|string',
-            'image' => 'nullable|image|max:3000', // max 1MB
+            'image' => 'nullable', // Remove image-specific validation
         ]);
 
         if ($this->image) {
-            $imagePath = $this->image->store('products', 'public');
-            $validatedData['image_url'] = Storage::url($imagePath);
+            // Check if it's a file upload or a URL
+            if (is_string($this->image)) {
+                // If it's a URL, download the image
+                try {
+                    $imageContents = file_get_contents($this->image);
+                    if ($imageContents === false) {
+                        throw new \Exception('Failed to download image');
+                    }
+
+                    // Generate a unique filename
+                    $filename = 'products/' . uniqid() . '_' . basename($this->image);
+                    
+                    // Store the image
+                    Storage::disk('public')->put($filename, $imageContents);
+                    
+                    $validatedData['image_url'] = Storage::url($filename);
+                } catch (\Exception $e) {
+                    \Log::error('Image download failed', [
+                        'url' => $this->image,
+                        'error' => $e->getMessage()
+                    ]);
+                    session()->flash('error', 'Failed to download image: ' . $e->getMessage());
+                    return;
+                }
+            } else {
+                // Existing file upload logic
+                $imagePath = $this->image->store('products', 'public');
+                $validatedData['image_url'] = Storage::url($imagePath);
+            }
         }
 
         Product::create($validatedData);
         $this->reset(['name', 'description', 'price', 'stock', 'category', 'image_url', 'image', 'isCreating']);
         session()->flash('message', 'Product created successfully.');
     }
-
+    public function updatedImage($value)
+    {
+        // Validate if the input is a URL
+        if (is_string($value) && filter_var($value, FILTER_VALIDATE_URL)) {
+            // Additional check to ensure it's an image URL
+            $headers = @get_headers($value, 1);
+            
+            if ($headers && isset($headers['Content-Type'])) {
+                $contentType = is_array($headers['Content-Type']) 
+                    ? $headers['Content-Type'][0] 
+                    : $headers['Content-Type'];
+                
+                $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                
+                if (!in_array(strtolower($contentType), $allowedTypes)) {
+                    $this->reset('image');
+                    session()->flash('error', 'Invalid image URL. Please use a valid image file.');
+                    return;
+                }
+            }
+        }
+    }
     public function delete(Product $product)
     {
         $product->delete();
