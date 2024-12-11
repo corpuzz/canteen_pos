@@ -154,34 +154,106 @@ class ProductDashboard extends Component
         $this->image_url = $product->image_url;
     }
 
-    public function update()
-    {
-        $validatedData = $this->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'category' => 'required|string',
-            'image' => 'nullable|image|max:3000', // max 1MB
-        ]);
+    // public function update()
+    // {
+    //     $validatedData = $this->validate([
+    //         'name' => 'required|string|max:255',
+    //         'description' => 'required|string',
+    //         'price' => 'required|numeric|min:0',
+    //         'stock' => 'required|integer|min:0',
+    //         'category' => 'required|string',
+    //         'image' => 'nullable|image|max:3000', // max 1MB
+    //     ]);
 
-        $product = Product::find($this->editingProductId);
+    //     $product = Product::find($this->editingProductId);
 
-        if ($this->image) {
-            // Delete old image if exists
-            if ($product->image_url) {
-                $oldPath = str_replace('/storage/', '', $product->image_url);
-                Storage::disk('public')->delete($oldPath);
-            }
+    //     if ($this->image) {
+    //         // Delete old image if exists
+    //         if ($product->image_url) {
+    //             $oldPath = str_replace('/storage/', '', $product->image_url);
+    //             Storage::disk('public')->delete($oldPath);
+    //         }
             
+    //         $imagePath = $this->image->store('products', 'public');
+    //         $validatedData['image_url'] = Storage::url($imagePath);
+    //     }
+
+    //     $product->update($validatedData);
+    //     $this->reset(['name', 'description', 'price', 'stock', 'category', 'image_url', 'image', 'editingProductId']);
+    //     session()->flash('message', 'Product updated successfully.');
+    // }
+    public function update()
+{
+    $validatedData = $this->validate([
+        'name' => 'required|string|max:255',
+        'description' => 'required|string',
+        'price' => 'required|numeric|min:0',
+        'stock' => 'required|integer|min:0',
+        'category' => 'required|string',
+        'image' => 'nullable', // Remove strict image validation
+    ]);
+
+    $product = Product::find($this->editingProductId);
+
+    // Handle image update (both file and URL)
+    if ($this->image) {
+        // Delete existing image if it exists
+        if ($product->image_url) {
+            $oldPath = str_replace('/storage/', '', $product->image_url);
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        // Handle URL-based image
+        if (is_string($this->image)) {
+            try {
+                // Validate image URL
+                $headers = @get_headers($this->image, 1);
+                if ($headers && isset($headers['Content-Type'])) {
+                    $contentType = is_array($headers['Content-Type']) 
+                        ? $headers['Content-Type'][0] 
+                        : $headers['Content-Type'];
+                    
+                    $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                    
+                    if (!in_array(strtolower($contentType), $allowedTypes)) {
+                        session()->flash('error', 'Invalid image URL. Please use a valid image file.');
+                        return;
+                    }
+                }
+
+                // Download and store image
+                $imageContents = file_get_contents($this->image);
+                if ($imageContents === false) {
+                    throw new \Exception('Failed to download image');
+                }
+
+                $filename = 'products/' . uniqid() . '_' . basename($this->image);
+                Storage::disk('public')->put($filename, $imageContents);
+                
+                $validatedData['image_url'] = Storage::url($filename);
+            } catch (\Exception $e) {
+                \Log::error('Image download failed', [
+                    'url' => $this->image,
+                    'error' => $e->getMessage()
+                ]);
+                session()->flash('error', 'Failed to download image: ' . $e->getMessage());
+                return;
+            }
+        } 
+        // Handle file upload
+        else {
             $imagePath = $this->image->store('products', 'public');
             $validatedData['image_url'] = Storage::url($imagePath);
         }
-
-        $product->update($validatedData);
-        $this->reset(['name', 'description', 'price', 'stock', 'category', 'image_url', 'image', 'editingProductId']);
-        session()->flash('message', 'Product updated successfully.');
     }
+
+    // Update the product
+    $product->update($validatedData);
+    
+    // Reset form and show success message
+    $this->reset(['name', 'description', 'price', 'stock', 'category', 'image_url', 'image', 'editingProductId']);
+    session()->flash('message', 'Product updated successfully.');
+}
 
     public function cancelEdit()
     {

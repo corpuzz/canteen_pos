@@ -40,7 +40,7 @@
         @if($isCreating || $editingProductId)
             <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg mb-6">
                 <div class="px-4 py-5 sm:p-6">
-                    <form wire:submit="{{ $editingProductId ? 'update' : 'create' }}">
+                    <form wire:submit.prevent="{{ $editingProductId ? 'update' : 'create' }}">
                         <div class="grid grid-cols-6 gap-6">
                             <div class="col-span-6 sm:col-span-3">
                                 <x-input-label for="name" :value="__('Product Name')" />
