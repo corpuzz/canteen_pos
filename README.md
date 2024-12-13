@@ -6,6 +6,7 @@
 Open the terminal and run the following commands:
 
 `npm install`
+
 `composer install`
 
 2. Set up the database, open Xampp Control Panel and start MySQL and Apache servers then run the migrations:
@@ -23,6 +24,7 @@ Open the terminal and run the following commands:
 5. Run the servers:
 
 `npm run dev`
+
 `php artisan serve`
 
 6. Open your browser and go to http://localhost:8000
